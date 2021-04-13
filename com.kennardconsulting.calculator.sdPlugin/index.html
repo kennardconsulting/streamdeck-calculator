@@ -138,13 +138,26 @@
 
 		function formatOutput( title ) {
 
+			if ( title === undefined ) {
+				return;
+			}
+
 			var lastIndexOf = title.lastIndexOf( String.fromCharCode( 247 ));
 			lastIndexOf = Math.max( lastIndexOf, title.lastIndexOf( 'x' ));
 			lastIndexOf = Math.max( lastIndexOf, title.lastIndexOf( '+' ));
 			lastIndexOf = Math.max( lastIndexOf, title.lastIndexOf( '-' ));
 
 			if ( lastIndexOf > 0 ) {
+
+				// For equations
+
 				title = title.substring( 0, lastIndexOf ) + '\n' + title.substring( lastIndexOf );
+
+			} else if ( title.length > 7 ) {
+
+				// For answers
+
+				title = title.substring( 0, 7 ) + '\n' + title.substring( 7 );
 			}
 
 			return title;
@@ -181,6 +194,7 @@
 				var action = jsonObj['action'];
 				var context = jsonObj['context'];
 				var jsonPayload = jsonObj['payload'] || {};
+				var toFocus = document.getElementById( 'toFocus' );
 
 				if (event == "keyDown") {
 					var column = jsonPayload.coordinates.column;
@@ -193,23 +207,46 @@
 								setTitle( websocket, global.outputKey, formatOutput( global.title ));
 							}
 							return;
+						} else if ( column === 7 ) {
+							toFocus.value = global.title;
+							global.title4 = global.title3;
+							global.title3 = global.title2;
+							global.title2 = global.title;
+							setTitle( websocket, global.outputKey2, formatOutput( global.title2 ));
+							setTitle( websocket, global.outputKey3, formatOutput( global.title3 ));
+							setTitle( websocket, global.outputKey4, formatOutput( global.title4 ));
+							toFocus.focus();
+							toFocus.select();
+							document.execCommand( "copy" );
+							showOk( websocket, context );
 						}
 					} else if ( row === 1 ) {
 						if ( column === 5 ) {
 							global.title = '';
 							setTitle( websocket, global.outputKey, formatOutput( global.title ));
 							return;
+						} else if ( column === 7 ) {
+							toFocus.value = global.title2;
+							toFocus.focus();
+							toFocus.select();
+							document.execCommand( "copy" );
+							showOk( websocket, context );
 						}
 					} else if ( row === 2 ) {
 						if ( column === 5 ) {
 							global.title = global.title || '';
-							var toFocus = document.getElementById( 'toFocus' );
 							toFocus.value = '';
 							toFocus.focus();
 							document.execCommand( "paste" );
 							global.title += toFocus.value.trim().replace( ',', '' ).replace( '$', '' );
 							setTitle( websocket, global.outputKey, formatOutput( global.title ));
 							return;
+						} else if ( column === 7 ) {
+							toFocus.value = global.title3;
+							toFocus.focus();
+							toFocus.select();
+							document.execCommand( "copy" );
+							showOk( websocket, context );
 						}
 					} else if ( row === 3 ) {
 						if ( column === 1 ) {
@@ -240,6 +277,12 @@
 								setTitle( websocket, global.outputKey, formatOutput( global.title ));
 							}
 							return;
+						} else if ( column === 7 ) {
+							toFocus.value = global.title4;
+							toFocus.focus();
+							toFocus.select();
+							document.execCommand( "copy" );
+							showOk( websocket, context );
 						}
 					}
 
@@ -275,11 +318,17 @@
 						if ( column === 5 ) {
 							setTitle( websocket, context, "CLR" );
 							setImage( websocket, context, "green.png" );
+						} else if ( column === 7 ) {
+							setImage( websocket, context, "cornflower.png" );
+							global.outputKey2 = context;
 						}
 					} else if ( row === 2 ) {
 						if ( column === 5 ) {
 							setTitle( websocket, context, "PASTE" );
 							setImage( websocket, context, "green.png" );
+						} else if ( column === 7 ) {
+							setImage( websocket, context, "cornflower.png" );
+							global.outputKey3 = context;
 						}
 					} else if ( row === 3 ) {
 						if ( column === 1 ) {
@@ -288,6 +337,9 @@
 						} else if ( column === 5 ) {
 							setTitle( websocket, context, "=" );
 							setImage( websocket, context, "green.png" );
+						} else if ( column === 7 ) {
+							setImage( websocket, context, "cornflower.png" );
+							global.outputKey4 = context;
 						}
 					}
 
